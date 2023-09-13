@@ -1,7 +1,9 @@
 import math
 from enum import Enum
 
+
 class cNote(Enum):
+
     A = 1
     D = 2
     G = 3
@@ -14,6 +16,7 @@ class cNote(Enum):
     Fsharp = 10
     B = 11
     E = 12
+
     @staticmethod
     def get_cNote_by_name(name:str):
         '''
@@ -40,6 +43,7 @@ class cNote(Enum):
         a = cNote[name]
         return a
 
+
 class _Note:
     '''
     这个类一般不允许其它文件使用。
@@ -50,11 +54,12 @@ class _Note:
         if not 1 <= self.note.value <= 12:
             raise ValueError("note index must be between 1 and 12")
         self.index = self.note.value
-    '''
-    "A" -> _Note(cNote.A)
-    '''
+
     @staticmethod
     def init_by_note_name(name:str):
+        '''
+        "A" -> _Note(cNote.A)
+        '''
         return _Note(cNote.get_cNote_by_name(name))
 
     def __repr__(self):
@@ -71,10 +76,8 @@ class _Note:
     def angle_to(self, other):
         return (self-other)*30
 
-
-    #获取从self到other逆时针方向的纯五跨度数
     def __sub__(self, other)->int:
-
+        """获取从self到other逆时针方向的纯五跨度数"""
         if not isinstance(other, _Note):
             raise TypeError("unsupported operand type(s) for -: '_Note' and '{}'".format(type(other).__name__))
         if other.index == self.index:
@@ -82,15 +85,17 @@ class _Note:
         interval = other.index - self.index
         return interval if interval > 0 else interval + 12
 
-
     def __gt__(self, other):
         return self.index>other.index
+
     def __lt__(self, other):
         return self.index<other.index
+
     def __eq__(self, other):
         return self.index == other.index
-    #返回逆时针方向第n个音符_Note
+
     def next(self, n=1):
+        """返回逆时针方向第n个音符_Note"""
         new_ind = self.index + n
         if n>=0:
             if new_ind>12:
@@ -100,11 +105,6 @@ class _Note:
                 new_ind+=12
 
         return _Note(cNote(new_ind))
-
-
-
-
-
 
 
 class Chord:
@@ -119,23 +119,25 @@ class Chord:
             self.notes.append(_Note(i))
         self.notes.sort()
 
-    '''
-    直接用音符名str获取和弦对象["C","E","G"]
-    '''
     def init_by_note_name_str(notes:list, name = None):
+        '''
+        直接用音符名str获取和弦对象["C","E","G"]
+        '''
         if len(notes) == 0:
             raise "没有输入音符"
         cNote_list = []
         for i in notes:
             cNote_list.append(cNote.get_cNote_by_name(i))
         return Chord(cNote_list,name)
+
     def __repr__(self):
         return f"Chord {self.name} ({', '.join([note.name for note in self.notes])})"
-    """
-    [_Note]->Chord
-    从_Note类的列表初始化Chord
-    """
+
     def initBy_Note(notes:list,name = None):
+        """
+        [_Note]->Chord
+        从_Note类的列表初始化Chord
+        """
         if len(notes) == 0:
             raise "没有输入音符"
         cNote_list=[]
@@ -161,8 +163,6 @@ class Chord:
         if len(thetas) == 1:
             self.temp_theta = thetas[0]
         return thetas
-
-
 
     def pure_fifth_span(self)->int:
         '''
@@ -191,6 +191,7 @@ class Chord:
                 if interval == 5 or interval == 7:
                     count += 1
         return count
+
     def get_Major2nd(self)->int:
         '''
         计算大二度数
@@ -203,6 +204,7 @@ class Chord:
                 if interval == 2 or interval == 10:
                     count += 1
         return count
+
     def if_Major_Chord_exist(self)->bool:
         '''
         是否存在大三和弦
@@ -321,10 +323,12 @@ class Chord:
         else:
             pass
         return harmony
+
     @staticmethod
     def angle_diff(a1,a2):
         diff = abs(a1 - a2) % 360
         return diff if diff <= 180 else 360 - diff
+
     @staticmethod
     def get_color_change色彩变化(chord1,chord2):
         angle1 = 0
@@ -369,7 +373,6 @@ class Chord:
         distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
         return distance
 
-
     @staticmethod
     def get_tension_change紧张度变化(chord1,chord2):
         return abs(chord2.get_harmony()-chord1.get_harmony())
@@ -377,13 +380,13 @@ class Chord:
     @staticmethod
     def get_fressness新鲜度(chord1,chord2):
         return Chord.get_tension_change紧张度变化(chord1,chord2)+Chord.get_color_change色彩变化(chord1,chord2)
-    '''
-    返回一个新的Chord实例，把self的所有音符在五度圈上逆时针旋转n*30°
-    '''
+
     def rotate(self,n:int,new_name:str = None):
+        '''
+        返回一个新的Chord实例，把self的所有音符在五度圈上逆时针旋转n*30°
+        '''
         new_notes=[]
         for i in self.notes:
             new_notes.append(i.next(n))
         return Chord.initBy_Note(new_notes,new_name)
-
 
