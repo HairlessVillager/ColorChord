@@ -31,11 +31,10 @@ class Circle:
             i += interval
             i %= 12
 
-        self.value2str = self.__get_value2str()
-        self.str2value = self.__get_str2value()
-
-    def __get_value2str(self):
-        return {i: '/'.join(s) for i, s in enumerate(self.__octave)}
+        self.__value2str = ['/'.join(s) for s in self.__octave]
+        self.__str2value = self.__get_str2value()
+        self.keys = list(self.__value2str.copy())
+        self.available_keys = list(self.__str2value.keys())
 
     def __get_str2value(self):
         res = {}
@@ -45,8 +44,13 @@ class Circle:
             res['/'.join(notes)] = i
         return res
 
-    def get_note(self, value):
-        from .note import Note
-        return Note('/'.join(self.__octave[value]))
+    def value2str(self, v):
+        return self.__value2str[v]
 
+    def str2value(self, s):
+        return self.__str2value[s]
+
+    def get_note(self, index):
+        from .note import Note
+        return Note('/'.join(self.__octave[index]))
 

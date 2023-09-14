@@ -1,11 +1,9 @@
 import unittest
 import itertools
 
-from colorharmony import Circle, Note
+from colorharmony import Circle, Note, Chord
 from colorharmony.const import CIRCLE_1, CIRCLE_5
 
-str2value = CIRCLE_5.str2value
-value2str = CIRCLE_5.value2str
 
 class TestNote(unittest.TestCase):
 
@@ -63,13 +61,12 @@ class TestNote(unittest.TestCase):
                 Note(v)
 
     def test_repr(self):
-        for v, s in CIRCLE_1.value2str.items():
-            self.assertEqual(Note(s).__repr__(), f'<Note "{s}"({v})>')
+        for i, s in enumerate(CIRCLE_1.keys):
+            self.assertEqual(Note(s).__repr__(), f'<Note "{s}"({i})>')
 
     def test_interval_1_to(self):
-        circle_1 = Circle(offset=0, interval=1)
         for (i1, s1), (i2, s2) in itertools.product(
-                enumerate(circle_1.value2str.values()),
+                enumerate(CIRCLE_1.keys),
                 repeat=2):
             n1 = Note(s1)
             n2 = Note(s2)
@@ -83,7 +80,7 @@ class TestNote(unittest.TestCase):
     def test_interval_5_to(self):
         circle_5 = Circle(offset=0, interval=5)
         for (i1, s1), (i2, s2) in itertools.product(
-                enumerate(circle_5.value2str.values()),
+                enumerate(circle_5.keys),
                 repeat=2):
             n1 = Note(s1)
             n2 = Note(s2)
@@ -95,7 +92,7 @@ class TestNote(unittest.TestCase):
                 raise
 
     def test_eq(self):
-        for v1, v2 in itertools.product(CIRCLE_5.value2str.values(), repeat=2):
+        for v1, v2 in itertools.product(CIRCLE_5.keys, repeat=2):
             n1 = Note(v1)
             n2 = Note(v2)
             try:
@@ -128,8 +125,16 @@ class TestCircle(unittest.TestCase):
     value2str = {0: 'B', 1: 'E', 2: 'A', 3: 'D', 4: 'G', 5: 'C', 6: 'F', 7: 'A#/Bb', 8: 'D#/Eb', 9: 'G#/Ab', 10: 'C#/Db', 11: 'F#/Gb'}
 
     def test_init(self):
-        self.assertEqual(self.circle.str2value, self.str2value)
-        self.assertEqual(self.circle.value2str, self.value2str)
+        self.assertEqual(self.circle.keys, list(self.value2str.values()))
+        self.assertEqual(self.circle.available_keys, list(self.str2value.keys()))
+
+    def test_value2str(self):
+        for i, s in self.value2str.items():
+            self.assertEqual(self.circle.value2str(i), s)
+
+    def test_str2value(self):
+        for s, v in self.str2value.items():
+            self.assertEqual(self.circle.str2value(s), v)
 
     def test_get_note(self):
         for v in range(12):
@@ -138,60 +143,91 @@ class TestCircle(unittest.TestCase):
             self.assertEqual(n1, n2)
 
 class TestChord(unittest.TestCase):
-    pass
-    # cases = []
-    # cases.append([
-    #     [1, 4, 6],
-    #     [Note(1), Note(4), Note(6)],
-    #     [1, Note(4), Note(6)],
-    #     [Note(1), Note(4), 6],
-    # ])
-    # cases.append([
-    #     [5, 7, 2, 11],
-    #     [Note(5), Note(7), Note(2), Note(11)],
-    #     [5, Note(7), 2, Note(11)],
-    #     [Note(5), 7, Note(2), 11],
-    # ])
-    # cases.append([
-    #     [0, 11],
-    #     [Note(0), Note(11)],
-    #     [0, Note(11)],
-    #     [Note(0), 11],
-    # ])
-    # cases.append([
-    #     list(range(12)),
-    #     [Note(_) for _ in range(12)],
-    # ])
+    cases = []
+    cases.append([
+        [1, 4, 6],
+        [Note(1), Note(4), Note(6)],
+        [1, Note(4), Note(6)],
+        [Note(1), Note(4), 6],
+    ])
+    cases.append([
+        [5, 7, 2, 11],
+        [Note(5), Note(7), Note(2), Note(11)],
+        [5, Note(7), 2, Note(11)],
+        [Note(5), 7, Note(2), 11],
+    ])
+    cases.append([
+        [0, 11],
+        [Note(0), Note(11)],
+        [0, Note(11)],
+        [Note(0), 11],
+    ])
+    cases.append([
+        list(range(12)),
+        [Note(_) for _ in range(12)],
+    ])
 
-    # def test_init_without_exception(self):
-    #     for case_ in self.cases:
-    #         for i in range(1, len(case_)):
-    #             self.assertEqual(
-    #                 Chord(case_[0]).values(),
-    #                 Chord(case_[i]).values()
-    #             )
+    def test_init(self):
+        Chord([0, 3, 5])
+        Chord({0, 3, 5})
+        Chord(range(0, 12, 3))
+        self.assertEqual(Chord([0, 3, 5]), Chord([5, 0, 3]))
 
-    # def test_init_with_exception(self):
-    #     with self.assertRaises(TypeError):
-    #         Chord([1.2, 2.3, 3.4])
+        for case_ in self.cases:
+            for i in range(1, len(case_)):
+                self.assertEqual(
+                    Chord(case_[0]).values(),
+                    Chord(case_[i]).values()
+                )
 
-    # def test_value(self):
-    #     for case_ in self.cases:
-    #         for i in range(1, len(case_)):
-    #             self.assertEqual(
-    #                 Chord(case_[i]).values(),
-    #                 case_[0]
-    #             )
+        with self.assertRaises(TypeError):
+            Chord([1.2, 2.3, 3.4])
 
-    # def test_repr(self):
-    #     v = [5, 1, 4]
-    #     s = '<Chord 5: "C"; 1: "E"; 4: "G">'
-    #     self.assertEqual(Chord(v).__repr__(), s)
+    def test_value(self):
+        for case_ in self.cases:
+            for i in range(1, len(case_)):
+                self.assertEqual(
+                    Chord(case_[i]).values(),
+                    sorted(case_[0])
+                )
 
-    # def test_avg_value(self):
-    #     v = [5, 1, 4]
-    #     avg_value = sum(v) / len(v)
-    #     self.assertEqual(Chord(v).avg_value(), avg_value)
+    def test_repr(self):
+        v = [0, 4, 7]
+        s = '<Chord "C E G"(0, 4, 7)>'
+        self.assertEqual(Chord(v).__repr__(), s)
+
+    def test_angle(self):
+        chord = Chord([Note("F"), Note("C"), Note("G")])
+        self.assertEqual(chord.angle(Note("C")), (11 + 0 + 1) / 3)
+
+    def test_count_1(self):
+        chord = Chord(range(12))
+        for interval in range(12):
+            self.assertEqual(chord.count_1(interval), 12)
+            self.assertEqual(chord.count_1([0, interval]), 12)
+
+        chord = Chord([0, 1, 2, 3, 5, 7, 11])
+        self.assertEqual(chord.count_1([0, 1, 2]), 3)
+        self.assertEqual(chord.count_1([2, 3, 5]), 3)
+        self.assertEqual(chord.count_1([1, 2, 4]), 3)
+        self.assertEqual(chord.count_1([0, 2, 4, 6, 8, 10]), 0)
+
+        self.assertEqual(chord.count_1(Chord([2, 3, 5])), chord.count_1([2, 3, 5]))
+
+        with self.assertRaises(ValueError):
+            chord.count_1([9, 10, 11, 12, 13])
+
+    def test_harmony(self):
+        raise NotImplementedError
+        # TODO: compleed
+        cases = [
+            # I_a
+            [[0, 4, 7], 10.0],
+            # I_b
+            [[0, ]]
+        ]
+        for vs, h in cases:
+            self.assertEqual(Chord(vs).harmony(), h)
 
 
 if __name__ == "__main__":

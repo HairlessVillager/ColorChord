@@ -17,12 +17,12 @@ class Note:
 
     def __init__(self, value):
         if isinstance(value, str):
-            if value in CIRCLE_1.str2value.keys():
-                self.__value = CIRCLE_1.str2value[value]
+            if value in CIRCLE_1.available_keys:
+                self.__value = CIRCLE_1.str2value(value)
             else:
                 raise ValueError(
                     f"expected value in "
-                    f"{list(CIRCLE_1.str2value.keys())}, "
+                    f"{list(CIRCLE_1.available_keys)}, "
                     f"got {value}"
                 )
         elif isinstance(value, int):
@@ -36,7 +36,7 @@ class Note:
             raise TypeError(f"unsupported type: {type(value)}")
 
     def __str__(self):
-        return f'"{CIRCLE_1.value2str[self.__value]}"({self.__value})'
+        return f'"{CIRCLE_1.value2str(self.__value)}"({self.__value})'
 
     def __repr__(self):
         return f"<Note {str(self)}>"
@@ -45,7 +45,7 @@ class Note:
         return self.__value
 
     def name(self):
-        return CIRCLE_1.value2str[self.__value]
+        return CIRCLE_1.value2str(self.__value)
 
     def interval_1_to(self, other):
         if not isinstance(other, Note):
@@ -86,3 +86,8 @@ class Note:
     def __eq__(self, other):
         return self.__value == other.__value
 
+    def __gt__(self, other):
+        return self.__value > other.__value
+
+    def __lt__(self, other):
+        return self.__value < other.__value
