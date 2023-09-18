@@ -1,5 +1,17 @@
-import colorharmony
+import matplotlib.pyplot as plt
+import numpy as np
 
-circle = colorharmony.Circle(offset=11, interval=5)
-print(circle.str2value())
-print(circle.value2str())
+from colorharmony import Note, Container, show_chords
+
+
+CDEFGAB = [Note(_) for _ in "CDEFGAB"]
+print(CDEFGAB)
+container = Container()
+container.add_by_notes(CDEFGAB, 3)
+container.add_by_notes(CDEFGAB, 4)
+
+for chord in container.chords():
+    print(f"{chord}\t{chord.angle_5():.3}\t{chord.harmony():.3}")
+
+show_chords(container.chords())
+

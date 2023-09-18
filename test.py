@@ -27,6 +27,7 @@ class TestNote(unittest.TestCase):
     def test_init(self):
         self.assertNotEqual(Note(1), Note(0))
         self.assertNotEqual(Note(11), Note(5))
+        self.assertEqual(Note(0), Note(Note(0)))
 
         unsupported_ints = [
             -1,

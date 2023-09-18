@@ -32,6 +32,8 @@ class Note:
                 raise ValueError(
                     f"expected value in range(0, 12), got {value}"
                 )
+        elif isinstance(value, Note):
+            self.__value = value.__value
         else:
             raise TypeError(f"unsupported type: {type(value)}")
 
