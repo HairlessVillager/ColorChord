@@ -54,3 +54,6 @@ class Circle:
         from .note import Note
         return Note('/'.join(self.__octave[index]))
 
+CIRCLE_1 = Circle(offset=0, interval=1)
+CIRCLE_5 = Circle(offset=0, interval=5)
+

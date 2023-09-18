@@ -1,4 +1,4 @@
-from .const import CIRCLE_1, CIRCLE_5
+from .circle import CIRCLE_1, CIRCLE_5
 
 
 class Note:
@@ -91,3 +91,6 @@ class Note:
 
     def __lt__(self, other):
         return self.__value < other.__value
+
+    def __hash__(self):
+        return hash(self.__value)

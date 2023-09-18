@@ -1,8 +1,8 @@
 import unittest
 import itertools
 
-from colorharmony import Circle, Note, Chord
-from colorharmony.const import CIRCLE_1, CIRCLE_5
+from colorharmony import Circle, Note, Chord, Container
+from colorharmony.circle import CIRCLE_1, CIRCLE_5
 
 
 class TestNote(unittest.TestCase):
@@ -24,7 +24,7 @@ class TestNote(unittest.TestCase):
         [Note("A"), 8, Note("C#/Db")],
     ]
 
-    def test_init_with_int(self):
+    def test_init(self):
         self.assertNotEqual(Note(1), Note(0))
         self.assertNotEqual(Note(11), Note(5))
 
@@ -37,7 +37,6 @@ class TestNote(unittest.TestCase):
             with self.assertRaises(ValueError):
                 Note(v)
 
-    def test_init_with_str(self):
         self.assertTrue(Note("C#") == Note("Db") == Note("C#/Db"))
         self.assertTrue(Note("F#") == Note("Gb") == Note("F#/Gb"))
         self.assertNotEqual(Note("C"), Note("G"))
@@ -52,7 +51,6 @@ class TestNote(unittest.TestCase):
             with self.assertRaises(ValueError):
                 Note(v)
 
-    def test_init_in_unexpected_type(self):
         unsupported_type_instances = [
             1.2,
         ]
@@ -166,6 +164,13 @@ class TestChord(unittest.TestCase):
         list(range(12)),
         [Note(_) for _ in range(12)],
     ])
+    cases.append([
+        [0, 1, 2, 3, 4],
+        [0, 1, 1, 2, 2, 3, 3, 4, 4],
+        [0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4],
+        [4, 3, 2, 1, 0],
+        [1, 1, 4, 5 -1, 4, 0, 2, 3],
+    ])
 
     def test_init(self):
         Chord([0, 3, 5])
@@ -196,13 +201,13 @@ class TestChord(unittest.TestCase):
         s = '<Chord "C E G"(0, 4, 7)>'
         self.assertEqual(Chord(v).__repr__(), s)
 
-    def test_angle(self):
+    def test_angle_5(self):
         chord = Chord([Note("F"), Note("C"), Note("G")])
-        self.assertEqual(chord.angle(Note("C")), (11 + 0 + 1) / 3)
+        self.assertEqual(chord.angle_5(Note("C")), (11 + 0 + 1) / 3)
 
     def test_count_1(self):
         chord = Chord(range(12))
-        for interval in range(12):
+        for interval in range(1, 12):
             self.assertEqual(chord.count_1(interval), 12)
             self.assertEqual(chord.count_1([0, interval]), 12)
 
@@ -218,16 +223,75 @@ class TestChord(unittest.TestCase):
             chord.count_1([9, 10, 11, 12, 13])
 
     def test_harmony(self):
-        raise NotImplementedError
-        # TODO: compleed
         cases = [
-            # I_a
-            [[0, 4, 7], 10.0],
-            # I_b
-            [[0, ]]
+            [[0, 4, 7], 16 / 3],
+            [[1, 5, 8], 16 / 3],
+            [[2, 6, 9], 16 / 3],
+            [[0, 2, 7, 11], 24 / 6],
+            [[0, 1, 4, 7], 20 / 6],
         ]
-        for vs, h in cases:
-            self.assertEqual(Chord(vs).harmony(), h)
+        for v, h in cases:
+            self.assertEqual(Chord(v).harmony(), h)
+
+
+class TestContainer(unittest.TestCase):
+
+    def test_init(self):
+        self.assertEqual(Container().chords(), set())
+        chords = {
+            Chord([0, 4, 7]),
+            Chord([2, 5, 8]),
+            Chord([1, 3, 5, 7]),
+        }
+        self.assertEqual(Container(chords=chords).chords(), chords)
+
+    def test_add(self):
+        chord = Chord([0, 1, 2])
+        container = Container()
+        container.add(chord)
+        self.assertIn(chord, container.chords())
+
+    def test_remove(self):
+        chord = Chord([0, 1, 2])
+        container = Container(notes=[0, 1, 2])
+        container.remove(chord)
+        self.assertNotIn(chord, container.chords())
+
+    def test_add_by_notes(self):
+        container = Container()
+        container.add_by_notes([0, 2, 4, 5, 7, 9, 11], 3)
+        self.assertEqual(container.chords(),
+            {
+                Chord((0, 2, 4)), Chord((0, 2, 5)), Chord((0, 2, 7)),
+                Chord((0, 2, 9)), Chord((0, 2, 11)), Chord((0, 4, 5)),
+                Chord((0, 4, 7)), Chord((0, 4, 9)), Chord((0, 4, 11)),
+                Chord((0, 5, 7)), Chord((0, 5, 9)), Chord((0, 5, 11)),
+                Chord((0, 7, 9)), Chord((0, 7, 11)), Chord((0, 9, 11)),
+                Chord((2, 4, 5)), Chord((2, 4, 7)), Chord((2, 4, 9)),
+                Chord((2, 4, 11)), Chord((2, 5, 7)), Chord((2, 5, 9)),
+                Chord((2, 5, 11)), Chord((2, 7, 9)), Chord((2, 7, 11)),
+                Chord((2, 9, 11)), Chord((4, 5, 7)), Chord((4, 5, 9)),
+                Chord((4, 5, 11)), Chord((4, 7, 9)), Chord((4, 7, 11)),
+                Chord((4, 9, 11)), Chord((5, 7, 9)), Chord((5, 7, 11)),
+                Chord((5, 9, 11)), Chord((7, 9, 11)),
+            }
+        )
+
+        container = Container()
+        container.add_by_notes([0, 3, 6, 9], 2)
+        container.add_by_notes([0, 3, 6, 9], 3)
+        container.add_by_notes([0, 3, 6, 9], 4)
+        self.assertEqual(container.chords(),
+            {
+                Chord((0, 3)), Chord((0, 6)), Chord((0, 9)),
+                Chord((3, 6)), Chord((3, 9)), Chord((6, 9)),
+                Chord((0, 3, 6)), Chord((0, 3, 9)), Chord((0, 6, 9)),
+                Chord((3, 6, 9)), Chord((0, 3, 6, 9)),
+            }
+        )
+
+    def test_infer(self):
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
